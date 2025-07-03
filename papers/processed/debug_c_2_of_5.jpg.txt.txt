@@ -1,0 +1,67 @@
+uenug.c
+#include (string . h)
+//»n Messages
+
+static void
+ViewS(char SH)
+(
+
+(*Msg->info) ("stringz", S),-
+)
+
+static void
+Viewmint I)
+
+{
+char str[255];
+sprintf (str, "hi", I)~
+1'Msg->info)("integer:”, str);
+)
+
+static void
+View12(int P[2])
+(
+
+char str[255];
+
+sprintf (str, "w : m", PW], Plllw
+
+(*Msg->Lnfo)1"point:", str);
+
+static vmd
+Viewznint Kl, Lnt 12)
+
+(
+char 5tr[255];
+sprintf (str, "m # tel" 11, 12);
+(*Msg—>info) (“integerz " , str);
+
+}
+
+static void
+ViewL(long L)
+
+(
+char str[255];
+sprintf (str, "1d", L);
+(*Msg->info)("integer:“, str);
+)
+
+static void
+ViewD (double 1))
+
+(
+char str[255];
+sprintf (str, "%f", D);
+(*Msg—>info)("double:", str);
+}
+
+static void
+ViewP(dOuble P[3 ])
+(
+
+char str[255];
+
+sprintf (str, "if : 1f : 25:", Pm], P[1}, p[2]);
+(*Msg—>info)("point:“, str);
+
