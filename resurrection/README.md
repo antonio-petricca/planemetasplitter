@@ -10,6 +10,9 @@ transcription of those scans, plus what's needed to compile it today.
 | `Debug.c`     | Transcription of `papers/debug_c_1..5_of_5.jpg`, `#include`d by `planespl.c` |
 | `lwpanel.h`   | **Reconstruction**: the LWPanels header isn't in the 5.0 SDK, so it declares only what the plugin uses |
 | `Makefile`    | Builds against the original NewTek SDK in `../sdk/lwsdk50.zip` |
+| `planespl.def`| Export list of the Win32 DLL (only `_mod_descrip`)             |
+| `BUILD.md`    | Detailed build instructions                                    |
+| `dist/planespl.p` | The built Win32 plugin (32-bit x86 DLL), cross-compiled with MinGW. Not tested inside LightWave |
 
 ## Transcription rules
 
@@ -20,13 +23,14 @@ transcription of those scans, plus what's needed to compile it today.
 ## Build
 
 ```sh
-make syntax   # syntax check only
-make          # builds planespl.so (gcc, -std=gnu89 -D_XGL), linked with the SDK's serv_w.c/slib*.c
-make clean
+make win32    # Windows plugin dist/planespl.p (MinGW cross-compiler)
+make          # Linux planespl.so, compile check only
+make clean    # keeps dist/
 ```
 
-The Makefile unpacks the SDK into `build/` and creates lowercase names for its
-uppercase headers. The zip itself is not changed. It needs `gcc`, `make` and `unzip`.
+The Makefile unpacks the SDK into `build/`; the zip itself is not changed.
+See [BUILD.md](BUILD.md) for prerequisites, every build step, how to verify the
+result and how to install the plugin.
 
 ## Fixes applied
 
