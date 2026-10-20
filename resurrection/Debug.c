@@ -40,7 +40,8 @@ ViewL(long L)
 {
     char         str[255];
 
-    sprintf (str, "%d", L);
+    /* RESURRECT FIX: L is long, so %d is wrong. Original: sprintf (str, "%d", L); */
+    sprintf (str, "%ld", L);
     (*Msg->info)("integer:", str);
 }
 
@@ -106,7 +107,8 @@ ViewN(PntID P[3])
 {
     char         str[255];
 
-    sprintf (str, "%i : %i : %i", P[0], P[1], P[2]);
+    /* RESURRECT FIX: PntID is a pointer type, so print it with %p and a (void *) cast. Original: sprintf (str, "%i : %i : %i", P[0], P[1], P[2]); */
+    sprintf (str, "%p : %p : %p", (void *) P[0], (void *) P[1], (void *) P[2]);
     (*Msg->info)("point:", str);
 }
 
@@ -158,6 +160,8 @@ CreateLogFile(char *BaseName)
     if (!localData.CreateLogFile) return;
 
     LogF= fopen(BaseName, "w");
+    /* RESURRECT FIX: if fopen fails the later fprintf calls would crash, so disable logging. Original: (no such line) */
+    if (!LogF) localData.CreateLogFile = false;
 }
     static void
 _StoreLog_String(char *Line)
@@ -167,15 +171,17 @@ _StoreLog_String(char *Line)
     fprintf(LogF, "%s \n", Line);
 }
 
+    /* RESURRECT FIX: const correctness. Original: _StoreLog_Poly(PolygonInfo *Poly) */
     static void
-_StoreLog_Poly(PolygonInfo *Poly)
+_StoreLog_Poly(const PolygonInfo *Poly)
 {
     PointInfo *PI;
     int       I;
 
     if (!localData.CreateLogFile) return;
 
-    fprintf(LogF, "%s: %i \n", "Polygon info", Poly->pol);
+    /* RESURRECT FIX: PolID is a pointer type, so print it with %p and a (void *) cast. Original: fprintf(LogF, "%s: %i \n", "Polygon info", Poly->pol); */
+    fprintf(LogF, "%s: %p \n", "Polygon info", (void *) Poly->pol);
 
     for (I=0; I<Poly->numPnts; I++) {
         PI = (*MEO->pointInfo)(MEO->state, Poly->points[I]);
@@ -212,7 +218,8 @@ _StoreLog_Cutted(PolID PolyID, CutDirection CutDir, Edge CreateEdge1, Edge Creat
 {
     if (!localData.CreateLogFile) return;
 
-    fprintf(LogF, "     *** %s: %i \n", "Polygon cut", PolyID);
+    /* RESURRECT FIX: PolID is a pointer type, so print it with %p and a (void *) cast. Original: fprintf(LogF, "     *** %s: %i \n", "Polygon cut", PolyID); */
+    fprintf(LogF, "     *** %s: %p \n", "Polygon cut", (void *) PolyID);
     fprintf(LogF, "     *** %s: (%i;%i) - (%i;%i) \n", "Cut edges", CutDir.Ed1.sP, CutDir.Ed1.eP, CutDir.Ed2.sP, CutDir.Ed2.eP);
     fprintf(LogF, "     *** %s: (P1; %i; %i; P2) \n", "Polygon 1 points creation order", CreateEdge1.sP, CreateEdge2.sP);
     fprintf(LogF, "     *** %s: (%i; P1; P2; %i) \n", "Polygon 2 points creation order", CreateEdge1.eP, CreateEdge2.eP);
@@ -236,8 +243,9 @@ _StoreLog_SidePoints(double SideP1[3], double SideP2[3])
     fprintf(LogF, "     *** Side Point 2 at (%f; %f; %f) \n", SideP2[0], SideP2[1], SideP2[2]);
 }
 
+    /* RESURRECT FIX: const correctness. Original: _StoreLog_PointAtPos(double P[3], int APos) */
     static void
-_StoreLog_PointAtPos(double P[3], int APos)
+_StoreLog_PointAtPos(const double P[3], int APos)
 {
     if (!localData.CreateLogFile) return;
 
@@ -288,5 +296,9 @@ DoneLogFile()
 {
     if (!localData.CreateLogFile) return;
 
-    fclose(LogF);
+    /* RESURRECT FIX: LogF may be NULL (fopen failed); close once and reset. Original: fclose(LogF); */
+    if (LogF) {
+        fclose(LogF);
+        LogF = NULL;
+    }
 }

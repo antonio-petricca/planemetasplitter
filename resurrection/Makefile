@@ -13,7 +13,9 @@ STAMP     = $(BUILD)/.sdk-ready
 
 CC        = gcc
 # -D_XGL selects XCALL_ in plug.h and MOD_MACHINE in serv_w.c
-CFLAGS    = -std=gnu89 -D_XGL -fPIC -Wall -I. -I$(INC_DIR)
+# The unused debug helpers (Debug.c) and the unused DynaValue globals are tools
+# of the original code and are intentionally kept, so their warnings are off.
+CFLAGS    = -std=gnu89 -D_XGL -fPIC -Wall -Wno-unused-function -Wno-unused-variable -I. -I$(INC_DIR)
 
 # SDK startup/library sources, compiled from the lowercase copies
 SDK_OBJS  = $(SRC_DIR)/serv_w.o $(SRC_DIR)/slib1.o $(SRC_DIR)/slib2.o \
