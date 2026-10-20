@@ -1,0 +1,6 @@
+; Export list of the Win32 plugin.
+; Same as the SDK's SERV.DEF (only _mod_descrip), but the library name matches the
+; file name, as in the 1996 binary.
+LIBRARY planespl.p
+EXPORTS
+	_mod_descrip
