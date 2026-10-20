@@ -28,13 +28,19 @@ make clean
 The Makefile unpacks the SDK into `build/` and creates lowercase names for its
 uppercase headers. The zip itself is not changed. It needs `gcc`, `make` and `unzip`.
 
-## Warnings from the original code
+## Fixes applied
 
-The build has no errors. With `-Wall`, a modern gcc warns about some 1996-era constructs, kept on purpose:
+The first commit of this folder (87f3792) holds the verbatim transcription of the 1996 sources. The following commit applies the fixes below, so that the build has no `-Wall` warnings. Every fix is marked in the code with a `RESURRECT FIX` comment that gives the reason and keeps the original text.
 
-- `PntID *PtID1, *PtID2;` in `MyData` is declared as a pointer to `PntID`, but it is used as a `PntID`.
-  This was harmless on 32-bit Win32, where all pointers have the same size.
-- `DoneLogFile;` is written without `()`, so it never runs. The log file is closed only when the host process exits.
-- `XCALL_(int);` has a stray `;`, so `Activate` gets an implicit `int` return type. The same happens with `CmpCutDirection`.
-- `%d`/`%i` are used with `long`s and handles, and `polyScan` callbacks take `MyData *` instead of `void *`.
-- Some debug helpers are unused.
+- `EDERR_FOUNDPOL`: removed the stray `;` from the macro.
+- `MyData`: `PtID1`/`PtID2` are now `PntID`, not `PntID *` (it worked on Win32 only because pointers had the same size).
+- `CmpCutDirection`: added the missing `static int` return type.
+- `XCALL_(int);` before `Activate`: removed the stray `;`, so `Activate` no longer gets an implicit `int`.
+- `DoneLogFile;` is now `DoneLogFile();`, so the log file is really closed.
+- `ScanAdiacentPoly` and `FindFirstPoly`: the first parameter is now `void *Data`, as the SDK `PolyScanFunc` type requires, and the typed `MyData *localData` is recovered from it.
+- Format strings: `%ld` for `long` values, `%p` with `(void *)` casts for `PntID` and `PolID` handles.
+- `CreateLogFile`: if `fopen` fails, logging is disabled; `DoneLogFile` checks `LogF` and sets it to `NULL` after `fclose`.
+- `Debug.c`: `const` added to `_StoreLog_PointAtPos` and `_StoreLog_Poly` parameters.
+- `Activate`: if `PAN_CREATE` fails, `PAN_POST` is not called and `PAN_KILL` is skipped.
+
+The unused debug helpers and unused `DynaValue` globals are kept on purpose, as tools of the original code. The Makefile turns off `-Wunused-function` and `-Wunused-variable` for them.
