@@ -11,7 +11,8 @@
 
 #define false   0
 #define true    1
-#define EDERR_FOUNDPOL 10;
+/* RESURRECT FIX: stray semicolon in macro body breaks use in expressions. Original: #define EDERR_FOUNDPOL 10; */
+#define EDERR_FOUNDPOL 10
 
 typedef struct st_Edge {                             //Edge data strcut
             int sP, eP;
@@ -37,7 +38,8 @@ typedef struct st_MyData {                           //General local server data
            long         SelPolsCount;
            int          LocalAxis, CreateLogFile, RevNormals;
 
-           PntID        *PtID1, *PtID2;
+           /* RESURRECT FIX: used as PntID everywhere; worked only because pointers had the same size as PntID on Win32. Original: PntID        *PtID1, *PtID2; */
+           PntID        PtID1, PtID2;
            double       Pt1[3], Pt2[3];
            CutDirection *CurrCutDir;
         } MyData;
@@ -100,6 +102,8 @@ CmpEdges(const Edge Ed1, const Edge Ed2)
     return (((Ed1.sP == Ed2.sP) && (Ed1.eP == Ed2.eP)) || ((Ed1.sP == Ed2.eP) && (Ed1.eP == Ed2.sP)));
 }
 
+    /* RESURRECT FIX: missing return type (implicit int). Original: (no line above CmpCutDirection) */
+    static int
 CmpCutDirection(const CutDirection CutD1, const CutDirection CutD2)
 {
     return (
@@ -463,8 +467,11 @@ IsPolyAdiacent(const PolygonInfo *CurrPoly)
 }
 
     static EDError
-ScanAdiacentPoly(MyData *localData, const PolygonInfo *PI)
+/* RESURRECT FIX: SDK type is EDError PolyScanFunc(void *, const PolygonInfo *); calling through a mismatched function type is undefined behaviour. Original: ScanAdiacentPoly(MyData *localData, const PolygonInfo *PI) */
+ScanAdiacentPoly(void *Data, const PolygonInfo *PI)
 {
+    /* RESURRECT FIX: recover the typed pointer so the body stays unchanged. Original: (no such line) */
+    MyData *localData = (MyData *) Data;
     int NotDeleted;
 
     NotDeleted = ((PI->flags & (PPDF_DELETE | PPDF_CURVE)) != PPDF_DELETE) && (PI->numPnts == 4);
@@ -552,7 +559,8 @@ CreateMetaSplitPlane()
     } while (localData.FoundPol);
 
     _StoreLog_Total(localData.SelPolsCount, Passes); //LOGGING
-    sprintf(str1, "Number of polygons splitted: %d", localData.SelPolsCount);
+    /* RESURRECT FIX: SelPolsCount is long, so %d is wrong. Original: sprintf(str1, "Number of polygons splitted: %d", localData.SelPolsCount); */
+    sprintf(str1, "Number of polygons splitted: %ld", localData.SelPolsCount);
     sprintf(str2, "Number of passes needed: %d",  Passes);
     (*Msg->info)(str1, str2);
 
@@ -567,8 +575,11 @@ Error:
 /*****************************/
 
     static EDError
-FindFirstPoly(MyData *localData, const PolygonInfo *PI)
+/* RESURRECT FIX: SDK type is EDError PolyScanFunc(void *, const PolygonInfo *); calling through a mismatched function type is undefined behaviour. Original: FindFirstPoly(MyData *localData, const PolygonInfo *PI) */
+FindFirstPoly(void *Data, const PolygonInfo *PI)
 {
+    /* RESURRECT FIX: recover the typed pointer so the body stays unchanged. Original: (no such line) */
+    MyData *localData = (MyData *) Data;
     PointInfo *P1, *P2, *P3, *P4;
 
     if  (((PI->flags & (PPDF_SELECT | PPDF_CURVE)) == PPDF_SELECT) && (PI->numPnts == 4)) {
@@ -626,7 +637,8 @@ GetFirstSelPoly()
 /*** Init application ***/
 /************************/
 
-    XCALL_(int);
+    /* RESURRECT FIX: stray ';' made this an empty declaration and Activate got an implicit int. Original: XCALL_(int); */
+    XCALL_(int)
 Activate (long version, GlobalFunc *global, MeshEditBegin *local, void *serverData)
 {
     MessageFuncs    *OwnMsg;
@@ -667,7 +679,8 @@ Activate (long version, GlobalFunc *global, MeshEditBegin *local, void *serverDa
         LogCtl   = BOOL_CTL(Form, FormID, "Create log file (PlaneMetaSplitter.log)");
     }
 
-    if (PAN_POST(Form, FormID)) {
+    /* RESURRECT FIX: if PAN_CREATE failed (FormID == 0) the controls are uninitialized, so do not post. Original: if (PAN_POST(Form, FormID)) { */
+    if (FormID && PAN_POST(Form, FormID)) {
         GET_INT(AxisCtl, localData.LocalAxis);
         GET_INT(RevCtl, localData.RevNormals);
         GET_INT(LogCtl, localData.CreateLogFile);
@@ -684,7 +697,8 @@ Activate (long version, GlobalFunc *global, MeshEditBegin *local, void *serverDa
         if (!OwnMEO) {
             (*OwnMsg->error)("I cannot start mesh editing.", NULL);
             PAN_KILL(Form, FormID);
-            DoneLogFile; //LOGGING
+            /* RESURRECT FIX: without parentheses the function was never called and the log was never closed. Original: DoneLogFile; //LOGGING */
+            DoneLogFile(); //LOGGING
             return AFUNC_OK;
         }
         MEO = OwnMEO;
@@ -694,7 +708,8 @@ Activate (long version, GlobalFunc *global, MeshEditBegin *local, void *serverDa
         if (Err) {
             (*OwnMEO->done)(OwnMEO->state, Err, 0);
             PAN_KILL(Form, FormID);
-            DoneLogFile; //LOGGING
+            /* RESURRECT FIX: without parentheses the function was never called and the log was never closed. Original: DoneLogFile; //LOGGING */
+            DoneLogFile(); //LOGGING
             return AFUNC_OK;
         }
 
@@ -703,17 +718,20 @@ Activate (long version, GlobalFunc *global, MeshEditBegin *local, void *serverDa
         if (Err) {
             (*OwnMEO->done)(OwnMEO->state, Err, 0);
             PAN_KILL(Form, FormID);
-            DoneLogFile; //LOGGING
+            /* RESURRECT FIX: without parentheses the function was never called and the log was never closed. Original: DoneLogFile; //LOGGING */
+            DoneLogFile(); //LOGGING
             return AFUNC_OK;
         }
 
         //Done mesh editing
         (*OwnMEO->done)(OwnMEO->state, Err, EDSELM_SELECTNEW);
 
-        DoneLogFile; //LOGGING
+        /* RESURRECT FIX: without parentheses the function was never called and the log was never closed. Original: DoneLogFile; //LOGGING */
+        DoneLogFile(); //LOGGING
     }
 
-    PAN_KILL(Form, FormID);
+    /* RESURRECT FIX: do not kill a panel that was never created. Original: PAN_KILL(Form, FormID); */
+    if (FormID) PAN_KILL(Form, FormID);
 
     return AFUNC_OK;
 }
